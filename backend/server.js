@@ -1,19 +1,28 @@
 const express = require('express');
-const app = express();
+const multer = require('multer');
+const cors = require('cors');
+const { analyzeSmartContract } = require('./services/mockAIAnalysis');
 
-app.use(express.json()); // Middleware to parse JSON bodies
+const app = express();
+const upload = multer({ dest: 'uploads/' });
+
+// Middleware
+app.use(express.json());
+app.use(cors());
 
 const port = process.env.PORT || 3001;
 
 app.get('/', (req, res) => {
-  res.send('Smart Contract Auditor Backend is running');
+    res.send('Smart Contract Auditor Backend is running');
+});
+
+// Consolidated /api/audit route for handling file uploads and mock analysis
+app.post('/api/audit', upload.single('smartContract'), async (req, res) => {
+    console.log(req.file);
+    const analysisResult = await analyzeSmartContract(req.file);
+    res.json(analysisResult);
 });
 
 app.listen(port, () => {
-  console.log(`Server listening at http://localhost:${port}`);
+    console.log(`Server listening at http://localhost:${port}`);
 });
-const auditRoutes = require('./src/routes/auditRoutes');
-
-app.use('/api', auditRoutes);
-const cors = require('cors');
-app.use(cors());
